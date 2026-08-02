@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: krew
+      POSTGRES_PASSWORD: krew_secret
+      POSTGRES_DB: krew_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krew -d krew_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://krew:krew_secret@db:5432/krew_ai
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-krew-ai-2026}
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY:-}
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads_data:

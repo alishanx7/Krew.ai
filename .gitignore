@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+uploads/
+*.egg-info/
+.DS_Store
+*.log
+.vscode/
+.idea/
+.antigravity/
